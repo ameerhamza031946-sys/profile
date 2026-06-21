@@ -283,9 +283,13 @@ class ProfileResponse(MongoBaseModel):
 
 # Credentials loaded from .env above
 
+import logging
+logger = logging.getLogger("uvicorn.error")
+
 def send_email_notification(name: str, email: str, subject: str, message: str):
+    logger.info(f"EMAIL TASK STARTED: From {name} ({email})")
     if not SMTP_USER:
-        print("WARNING: SMTP_USER not set - email skipped")
+        logger.warning("WARNING: SMTP_USER not set - email skipped")
         return
     try:
         msg = MIMEMultipart("alternative")
@@ -316,9 +320,9 @@ def send_email_notification(name: str, email: str, subject: str, message: str):
             clean_pass = SMTP_PASS.replace(" ", "").strip()
             server.login(SMTP_USER, clean_pass)
             server.sendmail(SMTP_USER, OWNER_EMAIL, msg.as_string())
-        print(f"OK: Email sent for message from {name}")
+        logger.info(f"OK: Email sent for message from {name}")
     except Exception as e:
-        print(f"Error: Email send failed: {e}")
+        logger.error(f"Error: Email send failed: {e}")
 
 # =============================================================================
 #  █████╗ ██████╗ ██████╗
