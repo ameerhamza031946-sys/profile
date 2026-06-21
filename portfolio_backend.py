@@ -313,7 +313,8 @@ def send_email_notification(name: str, email: str, subject: str, message: str):
 
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
+            clean_pass = SMTP_PASS.replace(" ", "").strip()
+            server.login(SMTP_USER, clean_pass)
             server.sendmail(SMTP_USER, OWNER_EMAIL, msg.as_string())
         print(f"OK: Email sent for message from {name}")
     except Exception as e:
