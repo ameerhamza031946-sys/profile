@@ -324,6 +324,38 @@ def send_email_notification(name: str, email: str, subject: str, message: str):
     except Exception as e:
         logger.error(f"Error: Email send failed: {e}")
 
+def send_auto_reply(name: str, email: str, subject: str):
+    logger.info(f"AUTO REPLY TASK STARTED: To {name} ({email})")
+    if not SMTP_USER:
+        logger.warning("WARNING: SMTP_USER not set - auto reply skipped")
+        return
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Thank you for reaching out! - Ameer Hamza"
+        msg["From"]    = SMTP_USER
+        msg["To"]      = email
+
+        html_body = f"""
+        <html><body style="font-family:Arial;background:#0a0a0a;color:#f0ede6;padding:30px;">
+            <h2 style="color:#c8f53c;">Hello {name},</h2>
+            <p>Thank you for getting in touch! I have received your message regarding <strong>"{subject}"</strong>.</p>
+            <p>I will review your message and get back to you as soon as possible.</p>
+            <hr style="border-color:#222;margin:20px 0;"/>
+            <p style="color:#888;font-size:12px;">This is an automated confirmation email. Please do not reply directly to this message.</p>
+            <p style="color:#c8f53c;font-weight:bold;">Best regards,<br>Ameer Hamza</p>
+        </body></html>
+        """
+        msg.attach(MIMEText(html_body, "html"))
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            clean_pass = SMTP_PASS.replace(" ", "").strip()
+            server.login(SMTP_USER, clean_pass)
+            server.sendmail(SMTP_USER, email, msg.as_string())
+        logger.info(f"OK: Auto reply email sent to {email}")
+    except Exception as e:
+        logger.error(f"Error: Auto reply email send failed: {e}")
+
 # =============================================================================
 #  █████╗ ██████╗ ██████╗
 # ██╔══██╗██╔══██╗██╔══██╗
@@ -466,6 +498,7 @@ async def send_message(request: Request, data: ContactCreate, background_tasks: 
     res = await COL_CONTACTS.insert_one(msg_dict)
     msg_dict["_id"] = res.inserted_id
     background_tasks.add_task(send_email_notification, data.name, data.email, data.subject, data.message)
+    background_tasks.add_task(send_auto_reply, data.name, data.email, data.subject)
     return msg_dict
 
 @app.get("/api/contact", response_model=List[ContactResponse], tags=["Contact"])

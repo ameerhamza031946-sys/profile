@@ -1,7 +1,11 @@
 import pymongo
 from datetime import datetime
 
-MONGO_URL = "mongodb://localhost:27017"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 CLIENT = pymongo.MongoClient(MONGO_URL)
 DB = CLIENT["portfolio_db"]
 COL_PROJECTS = DB["projects"]
