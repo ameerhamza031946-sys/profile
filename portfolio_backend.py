@@ -476,6 +476,38 @@ async def root():
 async def health():
     return {"status": "ok", "message": "MongoDB connected"}
 
+@app.get("/api/test-email", tags=["Root"])
+async def test_email_endpoint():
+    """Debug endpoint to test SMTP from server — remove after testing."""
+    result = {
+        "smtp_host": SMTP_HOST,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER,
+        "smtp_user_set": bool(SMTP_USER),
+        "smtp_pass_length": len(SMTP_PASS),
+        "owner_email": OWNER_EMAIL,
+        "email_sent": False,
+        "error": None
+    }
+    if not SMTP_USER or not SMTP_PASS:
+        result["error"] = "SMTP_USER or SMTP_PASS is empty on server!"
+        return result
+    try:
+        clean_pass = SMTP_PASS.replace(" ", "").strip()
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Render Server SMTP Test"
+        msg["From"]    = SMTP_USER
+        msg["To"]      = OWNER_EMAIL
+        msg.attach(MIMEText("This email was sent from Render server to confirm SMTP is working.", "plain"))
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            server.starttls()
+            server.login(SMTP_USER, clean_pass)
+            server.sendmail(SMTP_USER, OWNER_EMAIL, msg.as_string())
+        result["email_sent"] = True
+    except Exception as e:
+        result["error"] = str(e)
+    return result
+
 # ── Auth ───────────────────────────────────────────────────────────────────
 
 @app.post("/api/auth/login", response_model=TokenResponse, tags=["Auth"])
