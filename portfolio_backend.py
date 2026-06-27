@@ -9,6 +9,7 @@ import os
 import shutil
 import uuid
 import smtplib
+import resend
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
@@ -47,6 +48,11 @@ SMTP_PORT      = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER      = os.getenv("SMTP_USER", "")
 SMTP_PASS      = os.getenv("SMTP_PASS", "")
 OWNER_EMAIL    = os.getenv("OWNER_EMAIL", "ameerhamza031946@gmail.com")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+
+# Configure Resend if API key is available
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
 
 CLIENT = AsyncIOMotorClient(MONGO_URL)
 DB = CLIENT["portfolio_db"]
@@ -288,15 +294,10 @@ logger = logging.getLogger("uvicorn.error")
 
 def send_email_notification(name: str, email: str, subject: str, message: str):
     logger.info(f"EMAIL TASK STARTED: From {name} ({email})")
-    if not SMTP_USER:
-        logger.warning("WARNING: SMTP_USER not set - email skipped")
+    if not RESEND_API_KEY:
+        logger.warning("WARNING: RESEND_API_KEY not set - email skipped")
         return
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"New Portfolio Message: {subject}"
-        msg["From"]    = SMTP_USER
-        msg["To"]      = OWNER_EMAIL
-
         html_body = f"""
         <html><body style="font-family:Arial;background:#0a0a0a;color:#f0ede6;padding:30px;">
             <h2 style="color:#c8f53c;">New Contact Message</h2>
@@ -313,28 +314,23 @@ def send_email_notification(name: str, email: str, subject: str, message: str):
             <p style="background:#181818;padding:16px;border-left:3px solid #c8f53c;">{message}</p>
         </body></html>
         """
-        msg.attach(MIMEText(html_body, "html"))
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            clean_pass = SMTP_PASS.replace(" ", "").strip()
-            server.login(SMTP_USER, clean_pass)
-            server.sendmail(SMTP_USER, OWNER_EMAIL, msg.as_string())
-        logger.info(f"OK: Email sent for message from {name}")
+        params = resend.Emails.SendParams(
+            from_="Ameer Hamza Portfolio <onboarding@resend.dev>",
+            to=[OWNER_EMAIL],
+            subject=f"New Portfolio Message: {subject}",
+            html=html_body,
+        )
+        resend.Emails.send(params)
+        logger.info(f"OK: Email sent via Resend for message from {name}")
     except Exception as e:
-        logger.error(f"Error: Email send failed: {e}")
+        logger.error(f"Error: Resend email failed: {e}")
 
 def send_auto_reply(name: str, email: str, subject: str):
     logger.info(f"AUTO REPLY TASK STARTED: To {name} ({email})")
-    if not SMTP_USER:
-        logger.warning("WARNING: SMTP_USER not set - auto reply skipped")
+    if not RESEND_API_KEY:
+        logger.warning("WARNING: RESEND_API_KEY not set - auto reply skipped")
         return
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Thank you for reaching out! - Ameer Hamza"
-        msg["From"]    = SMTP_USER
-        msg["To"]      = email
-
         html_body = f"""
         <html><body style="font-family:Arial;background:#0a0a0a;color:#f0ede6;padding:30px;">
             <h2 style="color:#c8f53c;">Hello {name},</h2>
@@ -345,16 +341,16 @@ def send_auto_reply(name: str, email: str, subject: str):
             <p style="color:#c8f53c;font-weight:bold;">Best regards,<br>Ameer Hamza</p>
         </body></html>
         """
-        msg.attach(MIMEText(html_body, "html"))
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            clean_pass = SMTP_PASS.replace(" ", "").strip()
-            server.login(SMTP_USER, clean_pass)
-            server.sendmail(SMTP_USER, email, msg.as_string())
-        logger.info(f"OK: Auto reply email sent to {email}")
+        params = resend.Emails.SendParams(
+            from_="Ameer Hamza <onboarding@resend.dev>",
+            to=[email],
+            subject="Thank you for reaching out! - Ameer Hamza",
+            html=html_body,
+        )
+        resend.Emails.send(params)
+        logger.info(f"OK: Auto reply sent via Resend to {email}")
     except Exception as e:
-        logger.error(f"Error: Auto reply email send failed: {e}")
+        logger.error(f"Error: Resend auto reply failed: {e}")
 
 # =============================================================================
 #  █████╗ ██████╗ ██████╗
@@ -478,32 +474,27 @@ async def health():
 
 @app.get("/api/test-email", tags=["Root"])
 async def test_email_endpoint():
-    """Debug endpoint to test SMTP from server — remove after testing."""
+    """Debug endpoint to test Resend API from server."""
     result = {
-        "smtp_host": SMTP_HOST,
-        "smtp_port": SMTP_PORT,
-        "smtp_user": SMTP_USER,
-        "smtp_user_set": bool(SMTP_USER),
-        "smtp_pass_length": len(SMTP_PASS),
+        "resend_api_key_set": bool(RESEND_API_KEY),
+        "resend_key_length": len(RESEND_API_KEY),
         "owner_email": OWNER_EMAIL,
         "email_sent": False,
         "error": None
     }
-    if not SMTP_USER or not SMTP_PASS:
-        result["error"] = "SMTP_USER or SMTP_PASS is empty on server!"
+    if not RESEND_API_KEY:
+        result["error"] = "RESEND_API_KEY is not set on server!"
         return result
     try:
-        clean_pass = SMTP_PASS.replace(" ", "").strip()
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Render Server SMTP Test"
-        msg["From"]    = SMTP_USER
-        msg["To"]      = OWNER_EMAIL
-        msg.attach(MIMEText("This email was sent from Render server to confirm SMTP is working.", "plain"))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
-            server.starttls()
-            server.login(SMTP_USER, clean_pass)
-            server.sendmail(SMTP_USER, OWNER_EMAIL, msg.as_string())
+        params = resend.Emails.SendParams(
+            from_="Ameer Hamza Portfolio <onboarding@resend.dev>",
+            to=[OWNER_EMAIL],
+            subject="Render Server Resend Test",
+            html="<p>This email was sent from <b>Render server</b> via Resend API. Email is working! ✅</p>",
+        )
+        resp = resend.Emails.send(params)
         result["email_sent"] = True
+        result["resend_id"] = resp.get("id", "")
     except Exception as e:
         result["error"] = str(e)
     return result
