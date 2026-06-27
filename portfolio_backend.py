@@ -314,13 +314,12 @@ def send_email_notification(name: str, email: str, subject: str, message: str):
             <p style="background:#181818;padding:16px;border-left:3px solid #c8f53c;">{message}</p>
         </body></html>
         """
-        params = resend.Emails.SendParams(
-            from_="Ameer Hamza Portfolio <onboarding@resend.dev>",
-            to=[OWNER_EMAIL],
-            subject=f"New Portfolio Message: {subject}",
-            html=html_body,
-        )
-        resend.Emails.send(params)
+        resend.Emails.send({
+            "from": "Ameer Hamza Portfolio <onboarding@resend.dev>",
+            "to": [OWNER_EMAIL],
+            "subject": f"New Portfolio Message: {subject}",
+            "html": html_body,
+        })
         logger.info(f"OK: Email sent via Resend for message from {name}")
     except Exception as e:
         logger.error(f"Error: Resend email failed: {e}")
@@ -341,13 +340,12 @@ def send_auto_reply(name: str, email: str, subject: str):
             <p style="color:#c8f53c;font-weight:bold;">Best regards,<br>Ameer Hamza</p>
         </body></html>
         """
-        params = resend.Emails.SendParams(
-            from_="Ameer Hamza <onboarding@resend.dev>",
-            to=[email],
-            subject="Thank you for reaching out! - Ameer Hamza",
-            html=html_body,
-        )
-        resend.Emails.send(params)
+        resend.Emails.send({
+            "from": "Ameer Hamza <onboarding@resend.dev>",
+            "to": [email],
+            "subject": "Thank you for reaching out! - Ameer Hamza",
+            "html": html_body,
+        })
         logger.info(f"OK: Auto reply sent via Resend to {email}")
     except Exception as e:
         logger.error(f"Error: Resend auto reply failed: {e}")
@@ -486,15 +484,14 @@ async def test_email_endpoint():
         result["error"] = "RESEND_API_KEY is not set on server!"
         return result
     try:
-        params = resend.Emails.SendParams(
-            from_="Ameer Hamza Portfolio <onboarding@resend.dev>",
-            to=[OWNER_EMAIL],
-            subject="Render Server Resend Test",
-            html="<p>This email was sent from <b>Render server</b> via Resend API. Email is working! ✅</p>",
-        )
-        resp = resend.Emails.send(params)
+        resp = resend.Emails.send({
+            "from": "Ameer Hamza Portfolio <onboarding@resend.dev>",
+            "to": [OWNER_EMAIL],
+            "subject": "Render Server Resend Test",
+            "html": "<p>This email was sent from <b>Render server</b> via Resend API. Email is working! ✅</p>",
+        })
         result["email_sent"] = True
-        result["resend_id"] = resp.get("id", "")
+        result["resend_id"] = str(resp)
     except Exception as e:
         result["error"] = str(e)
     return result
