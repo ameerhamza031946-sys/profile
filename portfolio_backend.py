@@ -299,25 +299,59 @@ def send_email_notification(name: str, email: str, subject: str, message: str):
         return
     try:
         html_body = f"""
-        <html><body style="font-family:Arial;background:#0a0a0a;color:#f0ede6;padding:30px;">
-            <h2 style="color:#c8f53c;">New Contact Message</h2>
-            <table style="border-collapse:collapse;width:100%;">
-                <tr><td style="padding:8px;color:#888;">Name</td>
-                    <td style="padding:8px;">{name}</td></tr>
-                <tr><td style="padding:8px;color:#888;">Email</td>
-                    <td style="padding:8px;">{email}</td></tr>
-                <tr><td style="padding:8px;color:#888;">Subject</td>
-                    <td style="padding:8px;">{subject}</td></tr>
-            </table>
-            <hr style="border-color:#222;margin:20px 0;"/>
-            <p style="color:#888;">Message:</p>
-            <p style="background:#181818;padding:16px;border-left:3px solid #c8f53c;">{message}</p>
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
+            <tr><td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background:#111111;border-radius:16px;border:1px solid #222;overflow:hidden;max-width:600px;width:100%;">
+                <!-- Header -->
+                <tr><td style="background:#c8f53c;padding:28px 36px;">
+                  <h1 style="margin:0;color:#0a0a0a;font-size:22px;font-weight:800;letter-spacing:2px;">AMEER HAMZA</h1>
+                  <p style="margin:4px 0 0;color:#0a0a0a;font-size:13px;opacity:0.7;">AI &amp; Data Science Developer</p>
+                </td></tr>
+                <!-- Alert Badge -->
+                <tr><td style="padding:28px 36px 0;">
+                  <span style="background:#1a2a00;color:#c8f53c;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;letter-spacing:1px;">📩 NEW MESSAGE RECEIVED</span>
+                </td></tr>
+                <!-- Details -->
+                <tr><td style="padding:20px 36px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a1a1a;border-radius:12px;overflow:hidden;">
+                    <tr><td style="padding:14px 20px;border-bottom:1px solid #222;">
+                      <span style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px;">From</span><br>
+                      <span style="color:#f0ede6;font-size:15px;font-weight:600;">{name}</span>
+                    </td></tr>
+                    <tr><td style="padding:14px 20px;border-bottom:1px solid #222;">
+                      <span style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Email</span><br>
+                      <span style="color:#c8f53c;font-size:15px;">{email}</span>
+                    </td></tr>
+                    <tr><td style="padding:14px 20px;">
+                      <span style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Subject</span><br>
+                      <span style="color:#f0ede6;font-size:15px;font-weight:600;">{subject}</span>
+                    </td></tr>
+                  </table>
+                </td></tr>
+                <!-- Message -->
+                <tr><td style="padding:0 36px 28px;">
+                  <p style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px;">Message</p>
+                  <div style="background:#1a1a1a;border-left:4px solid #c8f53c;border-radius:0 8px 8px 0;padding:18px 20px;">
+                    <p style="color:#f0ede6;font-size:15px;line-height:1.7;margin:0;">{message}</p>
+                  </div>
+                </td></tr>
+                <!-- Footer -->
+                <tr><td style="background:#0d0d0d;padding:20px 36px;border-top:1px solid #1e1e1e;">
+                  <p style="color:#444;font-size:12px;margin:0;text-align:center;">Portfolio Contact System &bull; Hyderabad, Sindh, Pakistan</p>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
         </body></html>
         """
         resend.Emails.send({
             "from": "Ameer Hamza Portfolio <onboarding@resend.dev>",
             "to": [OWNER_EMAIL],
-            "subject": f"New Portfolio Message: {subject}",
+            "subject": f"📩 New Message from {name}: {subject}",
             "html": html_body,
         })
         logger.info(f"OK: Email sent via Resend for message from {name}")
@@ -331,19 +365,77 @@ def send_auto_reply(name: str, email: str, subject: str):
         return
     try:
         html_body = f"""
-        <html><body style="font-family:Arial;background:#0a0a0a;color:#f0ede6;padding:30px;">
-            <h2 style="color:#c8f53c;">Hello {name},</h2>
-            <p>Thank you for getting in touch! I have received your message regarding <strong>"{subject}"</strong>.</p>
-            <p>I will review your message and get back to you as soon as possible.</p>
-            <hr style="border-color:#222;margin:20px 0;"/>
-            <p style="color:#888;font-size:12px;">This is an automated confirmation email. Please do not reply directly to this message.</p>
-            <p style="color:#c8f53c;font-weight:bold;">Best regards,<br>Ameer Hamza</p>
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
+            <tr><td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background:#111111;border-radius:16px;border:1px solid #222;overflow:hidden;max-width:600px;width:100%;">
+                <!-- Header -->
+                <tr><td style="background:#c8f53c;padding:28px 36px;">
+                  <h1 style="margin:0;color:#0a0a0a;font-size:22px;font-weight:800;letter-spacing:2px;">AMEER HAMZA</h1>
+                  <p style="margin:4px 0 0;color:#0a0a0a;font-size:13px;opacity:0.7;">AI &amp; Data Science Developer</p>
+                </td></tr>
+                <!-- Greeting -->
+                <tr><td style="padding:36px 36px 20px;">
+                  <h2 style="margin:0 0 12px;color:#f0ede6;font-size:24px;font-weight:700;">Hey {name}! 👋</h2>
+                  <p style="margin:0;color:#aaa;font-size:15px;line-height:1.7;">Thank you for reaching out. I've received your message and I'll get back to you as soon as possible — usually within <strong style="color:#c8f53c;">24–48 hours</strong>.</p>
+                </td></tr>
+                <!-- Message Summary -->
+                <tr><td style="padding:0 36px 28px;">
+                  <div style="background:#1a1a1a;border-radius:12px;padding:20px;border-left:4px solid #c8f53c;">
+                    <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Your message was about</p>
+                    <p style="margin:0;color:#f0ede6;font-size:16px;font-weight:600;">📌 {subject}</p>
+                  </div>
+                </td></tr>
+                <!-- Divider -->
+                <tr><td style="padding:0 36px;">
+                  <hr style="border:none;border-top:1px solid #222;margin:0;"/>
+                </td></tr>
+                <!-- About Section -->
+                <tr><td style="padding:28px 36px;">
+                  <p style="margin:0 0 16px;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">While you wait, feel free to explore</p>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding-right:12px;">
+                        <a href="https://profile-skrp.onrender.com" style="display:inline-block;background:#c8f53c;color:#0a0a0a;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;">View Portfolio</a>
+                      </td>
+                      <td>
+                        <a href="mailto:ameerhamza031946@gmail.com" style="display:inline-block;background:#1a1a1a;color:#c8f53c;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;border:1px solid #333;">Direct Email</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+                <!-- Signature -->
+                <tr><td style="padding:0 36px 28px;">
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding-right:16px;vertical-align:top;">
+                        <div style="width:48px;height:48px;background:#c8f53c;border-radius:50%;text-align:center;line-height:48px;font-size:20px;font-weight:800;color:#0a0a0a;">A</div>
+                      </td>
+                      <td style="vertical-align:top;">
+                        <p style="margin:0;color:#f0ede6;font-size:15px;font-weight:700;">Ameer Hamza</p>
+                        <p style="margin:2px 0 0;color:#888;font-size:13px;">AI &amp; Data Science Developer</p>
+                        <p style="margin:2px 0 0;color:#888;font-size:13px;">📍 Hyderabad, Sindh, Pakistan</p>
+                        <p style="margin:2px 0 0;color:#888;font-size:13px;">📞 0319-4613960</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+                <!-- Footer -->
+                <tr><td style="background:#0d0d0d;padding:16px 36px;border-top:1px solid #1e1e1e;">
+                  <p style="color:#444;font-size:11px;margin:0;text-align:center;">This is an automated reply — please do not respond to this email directly.</p>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
         </body></html>
         """
         resend.Emails.send({
             "from": "Ameer Hamza <onboarding@resend.dev>",
             "to": [email],
-            "subject": "Thank you for reaching out! - Ameer Hamza",
+            "subject": f"✅ Got your message, {name}! — Ameer Hamza",
             "html": html_body,
         })
         logger.info(f"OK: Auto reply sent via Resend to {email}")
